@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "version": "0.6.0",
+  "windows_x64": {
+    "url": "https://github.com/sulistta/unblock-dc-downloads/releases/download/v0.6.0/unblock-2-windows-x64.zip",
+    "sha256": "6fef04a9c403ebb8cc05f1349ef80697ad69f7a26b2ccc7fdff8b3a80694172f"
+  }
+}
