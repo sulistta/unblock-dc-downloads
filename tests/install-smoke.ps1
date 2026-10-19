@@ -9,6 +9,9 @@ $core=Join-Path $root 'app-1.0.0\modules\discord_desktop_core-1\discord_desktop_
 $voice=Join-Path $root 'app-1.0.0\modules\discord_voice-1\discord_voice'
 $cli=Join-Path $data 'bin\unblock-2.exe'
 $original='module.exports = {};'
+# Pin the public installer to this run's commit: main can advance while a run
+# is queued, and GitHub's branch URL can still serve the previous cached file.
+$installerUrl='https://raw.githubusercontent.com/sulistta/unblock-dc-downloads/'+$env:GITHUB_SHA+'/install.ps1'
 try {
     New-Item -ItemType Directory -Path $core,$voice -Force | Out-Null
     [IO.File]::WriteAllText((Join-Path $core 'index.js'),$original)
@@ -16,7 +19,9 @@ try {
     [IO.File]::WriteAllText((Join-Path $voice 'index.js'),$original)
     [IO.File]::WriteAllText((Join-Path $voice 'discord_voice.node'),'')
     # Exercise exactly the published one-command entry point, then update.
-    Invoke-Expression (Invoke-RestMethod 'https://raw.githubusercontent.com/sulistta/unblock-dc-downloads/main/install.ps1')
+    $installer=Invoke-RestMethod $installerUrl
+    if($installer -cne [IO.File]::ReadAllText((Join-Path $PSScriptRoot '..\install.ps1'))){throw 'O instalador publicado nao corresponde a este teste.'}
+    Invoke-Expression $installer
     if(-not (Test-Path $cli)){throw 'CLI ausente apos instalacao.'}
     $status=& $cli status | ConvertFrom-Json
     if($LASTEXITCODE -ne 0 -or $status.integrated -lt 1 -or [IO.File]::ReadAllText((Join-Path $voice 'index.js')) -notmatch 'BEGIN UNBLOCK-2 INTEGRATION'){throw 'Os modulos do Discord nao foram integrados.'}
@@ -30,7 +35,7 @@ try {
         }
         throw 'OpenVPN/Wintun nao esta disponivel apos instalacao.'
     }
-    Invoke-Expression (Invoke-RestMethod 'https://raw.githubusercontent.com/sulistta/unblock-dc-downloads/main/install.ps1')
+    Invoke-Expression (Invoke-RestMethod $installerUrl)
     & $cli remove
     if($LASTEXITCODE -ne 0){throw 'A remocao falhou.'}
     if([IO.File]::ReadAllText((Join-Path $core 'index.js')) -ne $original){throw 'A remocao nao restaurou o modulo.'}

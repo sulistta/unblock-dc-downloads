@@ -3,6 +3,7 @@ $ErrorActionPreference='Stop'
 $ProgressPreference='SilentlyContinue'
 . "$PSScriptRoot\..\install.ps1"
 $script:realHash=(Get-Command Assert-UnblockHash).ScriptBlock
+$script:realOpenVpn=(Get-Command Get-UnblockOpenVpn).ScriptBlock
 $script:root=Join-Path ([IO.Path]::GetTempPath()) ('unblock-installer-check-'+[guid]::NewGuid().ToString('N'))
 $oldLocal=$env:LOCALAPPDATA
 $script:checks=0
@@ -56,6 +57,42 @@ try {
     function Invoke-UnblockHelper([string]$Executable){
         Check ([IO.File]::ReadAllText($Executable) -eq 'MZ-test-application') 'Executavel diferente do pacote validado.'
         $script:helperCalls++;if($script:helperFails){throw 'fixture helper failure'}
+    }
+    Test-Case 'native version detection consumes all output and checks version and driver' {
+        $savedProgramFiles=$env:ProgramFiles;$savedX86=${env:ProgramFiles(x86)}
+        try{
+            $env:ProgramFiles=Join-Path $script:root 'program files';${env:ProgramFiles(x86)}=''
+            $bin=Join-Path $env:ProgramFiles 'OpenVPN\bin';New-Item -ItemType Directory -Path $bin -Force | Out-Null
+            $exe=Join-Path $bin 'openvpn.exe';[IO.File]::WriteAllText((Join-Path $bin 'tapctl.exe'),'fixture')
+            if([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT){
+                Add-Type -OutputAssembly $exe -OutputType ConsoleApplication -TypeDefinition @'
+using System;
+using System.IO;
+using System.Reflection;
+public class UnblockVersionFixture {
+    public static void Main() {
+        Console.WriteLine("OpenVPN " + File.ReadAllText(Assembly.GetExecutingAssembly().Location + ".version"));
+        for (int i = 0; i < 500; i++) Console.WriteLine("fixture version details");
+    }
+}
+'@
+            }else{
+                [IO.File]::WriteAllText($exe,"#!/bin/sh`nprintf 'OpenVPN '; cat `"`$0.version`"; printf '\n'; i=0; while [ `$i -lt 500 ]; do echo 'fixture version details'; i=`$((i+1)); done`n")
+                & chmod +x $exe
+            }
+            $script:driver=$true
+            function Test-Path([string]$LiteralPath,[string]$Path){
+                $value=$LiteralPath;if(-not $value){$value=$Path}
+                if($value -eq 'HKLM:\SYSTEM\CurrentControlSet\Services\Wintun'){return $script:driver}
+                Microsoft.PowerShell.Management\Test-Path -LiteralPath $value
+            }
+            foreach($version in @('2.6.23','2.7.8')){
+                [IO.File]::WriteAllText(($exe+'.version'),$version)
+                Check ((& $script:realOpenVpn) -eq $exe) 'Versao compativel foi recusada.'
+            }
+            [IO.File]::WriteAllText(($exe+'.version'),'2.5.0');Check (-not (& $script:realOpenVpn)) 'Versao antiga foi aceita.'
+            [IO.File]::WriteAllText(($exe+'.version'),'2.6.23');$script:driver=$false;Check (-not (& $script:realOpenVpn)) 'Driver ausente foi aceito.'
+        }finally{$env:ProgramFiles=$savedProgramFiles;${env:ProgramFiles(x86)}=$savedX86}
     }
     Test-Case 'installs a verified package and keeps a usable CLI' {
         Reset-Fixture;Install-UnblockDc
