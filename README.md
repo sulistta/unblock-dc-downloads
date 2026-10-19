@@ -2,6 +2,26 @@
 
 Instalador e downloads oficiais. Este repositorio distribui o instalador e os executaveis; o codigo da aplicacao e mantido separadamente.
 
+## Linux x86_64
+
+Feche completamente o Discord e execute no terminal:
+
+```sh
+bash -o pipefail -c 'curl -fsSL https://raw.githubusercontent.com/sulistta/unblock-dc-downloads/main/install.sh | bash'
+```
+
+O instalador verifica o SHA-256 do executavel, prepara OpenVPN 2.6+, iproute2 e polkit pelo gerenciador do sistema, e registra o auxiliar com systemd. Autorize a instalacao no terminal ou na janela do sistema. O comando fica em `~/.local/bin/unblock-2` para consultar o status e remover a integracao.
+
+Requisitos: Linux x86_64, kernel 5.3 ou superior com pidfd, systemd ativo, polkit e Discord desktop oficial. A instalacao automatica atende Debian/Ubuntu, Fedora, RHEL e derivados, openSUSE e Arch/Manjaro. Flatpak, Snap, WSL sem systemd e outras arquiteturas nao fazem parte desta distribuicao.
+
+```sh
+~/.local/bin/unblock-2 status
+# Encerre completamente o Discord antes de remover:
+~/.local/bin/unblock-2 remove
+```
+
+OpenVPN permanece instalado como dependencia do sistema depois da remocao; o comando `unblock-2` tambem fica disponivel para futuras atualizacoes ou remocoes.
+
 ## Windows x64
 
 Encerre completamente o Discord, incluindo o icone na bandeja. Abra o **PowerShell de 64 bits** como seu usuario normal e execute:
