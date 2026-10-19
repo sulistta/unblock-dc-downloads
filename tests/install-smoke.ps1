@@ -20,7 +20,8 @@ try {
     [IO.File]::WriteAllText((Join-Path $voice 'discord_voice.node'),'')
     # Exercise exactly the published one-command entry point, then update.
     $installer=Invoke-RestMethod $installerUrl
-    if($installer -cne [IO.File]::ReadAllText((Join-Path $PSScriptRoot '..\install.ps1'))){throw 'O instalador publicado nao corresponde a este teste.'}
+    $checkedOut=[IO.File]::ReadAllText((Join-Path $PSScriptRoot '..\install.ps1'))
+    if(($installer -replace "`r`n","`n") -cne ($checkedOut -replace "`r`n","`n")){throw 'O instalador publicado nao corresponde a este teste.'}
     Invoke-Expression $installer
     if(-not (Test-Path $cli)){throw 'CLI ausente apos instalacao.'}
     $status=& $cli status | ConvertFrom-Json
