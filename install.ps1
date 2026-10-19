@@ -26,8 +26,10 @@ function Get-UnblockOpenVpn {
         $bin = Join-Path $base 'OpenVPN\bin'
         $exe = Join-Path $bin 'openvpn.exe'
         if ((Test-Path -LiteralPath $exe) -and (Test-Path -LiteralPath (Join-Path $bin 'tapctl.exe')) -and (Test-Path 'HKLM:\SYSTEM\CurrentControlSet\Services\Wintun')) {
-            $text = (& $exe --version 2>$null | Select-Object -First 1)
-            if ($LASTEXITCODE -eq 0 -and $text -match '^OpenVPN (\d+\.\d+\.\d+)' -and [version]$Matches[1] -ge [version]'2.6.23') { return $exe }
+            # Read all output before inspecting it. Select-Object -First can
+            # stop a native process early and change its exit code in PS 5.1.
+            $lines = @(& $exe --version 2>$null)
+            if ($LASTEXITCODE -eq 0 -and $lines.Count -gt 0 -and $lines[0] -match '^OpenVPN (\d+\.\d+\.\d+)' -and [version]$Matches[1] -ge [version]'2.6.23') { return $exe }
         }
     }
 }

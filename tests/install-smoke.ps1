@@ -21,7 +21,15 @@ try {
     $status=& $cli status | ConvertFrom-Json
     if($LASTEXITCODE -ne 0 -or $status.integrated -lt 1 -or [IO.File]::ReadAllText((Join-Path $voice 'index.js')) -notmatch 'BEGIN UNBLOCK-2 INTEGRATION'){throw 'Os modulos do Discord nao foram integrados.'}
     . "$PSScriptRoot\..\install.ps1"
-    if(-not (Get-UnblockOpenVpn)){throw 'OpenVPN/Wintun nao esta disponivel apos instalacao.'}
+    if(-not (Get-UnblockOpenVpn)){
+        Write-Host ('Wintun service: '+(Test-Path 'HKLM:\SYSTEM\CurrentControlSet\Services\Wintun'))
+        foreach($base in @($env:ProgramFiles,${env:ProgramFiles(x86)})){
+            if(-not $base){continue};$exe=Join-Path $base 'OpenVPN\bin\openvpn.exe'
+            Write-Host ($exe+': '+(Test-Path $exe))
+            if(Test-Path $exe){$lines=@(& $exe --version 2>&1);Write-Host ($lines[0]+'; exit='+$LASTEXITCODE)}
+        }
+        throw 'OpenVPN/Wintun nao esta disponivel apos instalacao.'
+    }
     Invoke-Expression (Invoke-RestMethod 'https://raw.githubusercontent.com/sulistta/unblock-dc-downloads/main/install.ps1')
     & $cli remove
     if($LASTEXITCODE -ne 0){throw 'A remocao falhou.'}
