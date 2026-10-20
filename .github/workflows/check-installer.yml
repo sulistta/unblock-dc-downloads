@@ -11,9 +11,16 @@ jobs:
         shell: powershell
         run: ./tests/installer.tests.ps1
   published-installation:
+    if: github.ref == 'refs/heads/main'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - name: Install/update/remove using the published command and a fake Discord profile
         shell: powershell
         run: ./tests/install-smoke.ps1
+  linux-installer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo modprobe tun
+      - run: python3 tests/linux-installer.test.py
