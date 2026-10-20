@@ -18,7 +18,11 @@ try {
     foreach($name in (@('unblock-2.exe','LICENSE','README.md')+@(Get-UnblockRuntimeFiles|ForEach-Object{'runtime/'+$_}))){
         $path=Join-Path $source $name;New-Item -ItemType Directory -Force (Split-Path $path) | Out-Null;[IO.File]::WriteAllText($path,'fixture-'+$name)
     }
-    $script:zip=Join-Path $root 'fixture.zip';[IO.Compression.ZipFile]::CreateFromDirectory($source,$script:zip)
+    $script:zip=Join-Path $root 'fixture.zip'
+    $z=[IO.Compression.ZipFile]::Open($script:zip,'Create')
+    foreach($name in (@('unblock-2.exe','LICENSE','README.md')+@(Get-UnblockRuntimeFiles|ForEach-Object{'runtime/'+$_}))){
+        $entry=$z.CreateEntry($name);$stream=$entry.Open();$bytes=[Text.Encoding]::UTF8.GetBytes('fixture-'+$name);$stream.Write($bytes,0,$bytes.Length);$stream.Dispose()
+    };$z.Dispose()
     $script:hash=(Get-FileHash $script:zip -Algorithm SHA256).Hash
     function Reset-Fixture {
         $env:LOCALAPPDATA=Join-Path $root ([guid]::NewGuid().ToString('N'))

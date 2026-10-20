@@ -38,7 +38,7 @@ function Expand-UnblockPackage([string]$Archive, [string]$Directory) {
         if ($zip.Entries.Count -ne $expected.Count) { throw 'Pacote incompleto ou com arquivos inesperados.' }
         foreach ($name in $expected) {
             $entries = @($zip.Entries | Where-Object FullName -ceq $name)
-            if ($entries.Count -ne 1 -or $entries[0].Length -lt 1 -or $entries[0].Length -gt 33554432 -or (($entries[0].ExternalAttributes -shr 16) -band 0xF000) -eq 0xA000) { throw 'Arquivo ausente, repetido ou invalido no pacote.' }
+            if ($entries.Count -ne 1 -or $entries[0].Length -lt 1 -or $entries[0].Length -gt 33554432 -or (($entries[0].ExternalAttributes -shr 16) -band 0xF000) -eq 0xA000) { throw ('Arquivo ausente, repetido ou invalido no pacote: '+$name+'.') }
         }
         foreach ($entry in $zip.Entries) {
             $destination = Join-Path $Directory $entry.FullName
