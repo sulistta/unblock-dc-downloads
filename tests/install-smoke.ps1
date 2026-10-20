@@ -27,22 +27,15 @@ try {
     $status=& $cli status | ConvertFrom-Json
     if($LASTEXITCODE -ne 0 -or $status.integrated -lt 1 -or [IO.File]::ReadAllText((Join-Path $voice 'index.js')) -notmatch 'BEGIN UNBLOCK-2 INTEGRATION'){throw 'Os modulos do Discord nao foram integrados.'}
     . "$PSScriptRoot\..\install.ps1"
-    if(-not (Get-UnblockOpenVpn)){
-        Write-Host ('Wintun service: '+(Test-Path 'HKLM:\SYSTEM\CurrentControlSet\Services\Wintun'))
-        foreach($base in @($env:ProgramFiles,${env:ProgramFiles(x86)})){
-            if(-not $base){continue};$exe=Join-Path $base 'OpenVPN\bin\openvpn.exe'
-            Write-Host ($exe+': '+(Test-Path $exe))
-            if(Test-Path $exe){$lines=@(& $exe --version 2>&1);Write-Host ($lines[0]+'; exit='+$LASTEXITCODE)}
-        }
-        throw 'OpenVPN/Wintun nao esta disponivel apos instalacao.'
-    }
+    Assert-UnblockRuntime (Join-Path (Split-Path $cli) 'runtime')
+    if(Test-Path (Join-Path $env:ProgramFiles 'OpenVPN')){throw 'Um OpenVPN global foi instalado.'}
     Invoke-Expression (Invoke-RestMethod $installerUrl)
     & $cli remove
     if($LASTEXITCODE -ne 0){throw 'A remocao falhou.'}
     if([IO.File]::ReadAllText((Join-Path $core 'index.js')) -ne $original){throw 'A remocao nao restaurou o modulo.'}
     $sid=[Security.Principal.WindowsIdentity]::GetCurrent().User.Value
     if(Get-Service "unblock-2-$sid" -ErrorAction SilentlyContinue){throw 'O servico permaneceu instalado.'}
-    Write-Host 'Windows: comando publico instalou dependencias, integrou, atualizou e removeu corretamente.'
+    Write-Host 'Windows: comando publico instalou o runtime privado, integrou, atualizou e removeu corretamente.'
 } finally {
     if(Test-Path $cli){& $cli remove}
     Remove-Item $root,$data -Recurse -Force -ErrorAction SilentlyContinue
