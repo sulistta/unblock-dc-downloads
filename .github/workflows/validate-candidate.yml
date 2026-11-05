@@ -19,20 +19,20 @@ jobs:
           CANDIDATE: ${{ inputs.release }}
         run: |
           mkdir payload
-          gh release download "$CANDIDATE" --repo "$GITHUB_REPOSITORY" --dir payload -p unblock-2-linux-x86_64.tar.gz -p unblock-2-linux-x86_64.tar.gz.sha256 -p linux-tests -p linux-network
+          gh release download "$CANDIDATE" --repo "$GITHUB_REPOSITORY" --dir payload -p unblock-2-linux-x86_64.tar.gz -p unblock-2-linux-x86_64.tar.gz.sha256 -p linux-tests
           cd payload
           sha256sum --check unblock-2-linux-x86_64.tar.gz.sha256
           mkdir package
           tar -xzf unblock-2-linux-x86_64.tar.gz -C package
-          chmod +x linux-tests linux-network
+          chmod +x linux-tests
       - name: Unit, namespace and installer checks
         run: |
           ./payload/linux-tests
           sudo modprobe tun
           sudo ./payload/linux-tests --ignored
           python3 tests/linux-installer.test.py
-      - name: Protected runtime, HTTPS, UDP and cleanup
-        run: ./tests/linux-service-smoke.sh ./payload/package/unblock-2 ./payload/linux-network
+      - name: Protected runtime, IPC and cleanup without a provider account
+        run: ./tests/linux-service-smoke.sh ./payload/package/unblock-2
   windows:
     runs-on: windows-latest
     steps:
@@ -44,7 +44,7 @@ jobs:
           CANDIDATE: ${{ inputs.release }}
         run: |
           New-Item -ItemType Directory payload | Out-Null
-          gh release download $env:CANDIDATE --repo $env:GITHUB_REPOSITORY --dir payload -p unblock-2-windows-x64.zip -p unblock-2-windows-x64.zip.sha256 -p windows-tests.exe -p windows-network.exe
+          gh release download $env:CANDIDATE --repo $env:GITHUB_REPOSITORY --dir payload -p unblock-2-windows-x64.zip -p unblock-2-windows-x64.zip.sha256 -p windows-tests.exe
           if ($LASTEXITCODE -ne 0) { throw 'Download failed' }
           $expected=(Get-Content payload/unblock-2-windows-x64.zip.sha256).Split(' ')[0]
           if ((Get-FileHash payload/unblock-2-windows-x64.zip -Algorithm SHA256).Hash -ne $expected) { throw 'Hash mismatch' }
@@ -57,6 +57,6 @@ jobs:
           . ./install.ps1
           Assert-UnblockRuntime ./payload/package/runtime
           ./tests/installer.tests.ps1
-      - name: Service, DCO tunnel, HTTPS, UDP, recovery and cleanup
+      - name: Service, ACLs, IPC and cleanup without a provider account
         shell: powershell
-        run: ./tests/windows-service-smoke.ps1 -Helper ./payload/package/unblock-2.exe -NetworkExecutable ((Resolve-Path ./payload/windows-network.exe).Path)
+        run: ./tests/windows-service-smoke.ps1 -Helper ./payload/package/unblock-2.exe

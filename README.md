@@ -13,6 +13,7 @@ bash -o pipefail -c 'curl -fsSL https://raw.githubusercontent.com/sulistta/unblo
 O pacote inclui OpenVPN estático e verifica SHA-256 antes de instalar. Não instala OpenVPN ou iproute2 pelo gerenciador de pacotes. Autorize a janela do desktop uma vez. Requer kernel 5.3+, TUN nativo, systemd, polkit/pkexec, curl e tar. Desktop oficial do Discord; Flatpak, Snap, WSL e outras arquiteturas não são atendidos por este pacote.
 
 ```sh
+~/.local/bin/unblock-2 configure # trocar os dados OpenVPN; depois reabrir o Discord
 ~/.local/bin/unblock-2 status
 # Encerre completamente o Discord antes de remover:
 ~/.local/bin/unblock-2 remove
@@ -31,17 +32,18 @@ O pacote inclui OpenVPN e suas bibliotecas em uma pasta privada. O instalador ve
 Requer Windows 10 versão 2004+ ou Windows 11 x64, PowerShell 5.1+ e Discord desktop oficial. Windows ARM64, navegador e Microsoft Store não são atendidos por este pacote.
 
 ```powershell
+& "$env:LOCALAPPDATA\unblock-2\bin\unblock-2.exe" configure
 & "$env:LOCALAPPDATA\unblock-2\bin\unblock-2.exe" status
 # Encerre completamente o Discord antes de remover:
 & "$env:LOCALAPPDATA\unblock-2\bin\unblock-2.exe" remove
 ```
 
-Abra o Discord e use os controles nativos para assistir e transmitir. A conexão é automática; a voz comum continua direta. Não é necessário criar conta VPN ou importar configurações. Para atualizar, feche o Discord e execute novamente o comando do seu sistema.
+Abra o Discord e use os controles nativos para assistir e transmitir. A conexão é automática; a voz comum continua direta. A primeira instalação abre [a página OpenVPN da conta Proton](https://account.proton.me/vpn/OpenVpn). Copie o usuário e a senha OpenVPN para os campos ocultos no terminal uma única vez; não use a senha da conta Proton. Não é necessário baixar configurações. Para atualizar, feche o Discord e execute novamente o comando do seu sistema.
 
-A remoção desabilita a integração, retira o auxiliar e seus adaptadores. No Linux, a última conta removida também apaga o runtime protegido. O Windows gerencia o pacote do driver no Driver Store. O CLI no perfil do usuário permanece disponível para status, reparo ou uma nova instalação.
+A remoção desabilita a integração, retira o auxiliar e seus adaptadores. No Linux, a última conta removida também apaga o runtime protegido. O Windows gerencia o pacote do driver no Driver Store. O CLI no perfil do usuário permanece disponível para status, reparo ou uma nova instalação; as credenciais locais são removidas.
 
 ## Downloads e componentes
 
 Os pacotes completos, checksums e fontes correspondentes dos componentes de terceiros estão em [Releases](https://github.com/sulistta/unblock-dc-downloads/releases/latest). Para instalar manualmente, extraia o pacote completo mantendo a pasta `runtime` ao lado de `unblock-2` e execute `install`. As licenças ficam em `runtime/licenses`.
 
-A disponibilidade das saídas RiseupVPN depende de terceiros. A integração escolhe a saída com uma sondagem atual e tenta recuperar quedas; não garante estabilidade prolongada. Testes de HTTPS e UDP não comprovam reprodução de uma live. A validação de mídia dentro do Discord no Windows ainda precisa de uma conta conectada. Atualizações do Discord podem substituir módulos integrados; nesse caso, execute novamente o instalador.
+A disponibilidade das saídas Proton depende de terceiros. A descoberta usa o pequeno conjunto público de inicialização do cliente oficial Android, filtrado para OpenVPN gratuito fora do Brasil; não oferece o catálogo completo da Proton. A integração escolhe a saída com uma sondagem atual e tenta recuperar quedas; não garante estabilidade prolongada. Testes de HTTPS e UDP não comprovam reprodução de uma live. A validação de mídia dentro do Discord no Windows ainda precisa de uma conta conectada. Atualizações do Discord podem substituir módulos integrados; nesse caso, execute novamente o instalador.

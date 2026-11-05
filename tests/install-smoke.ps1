@@ -13,7 +13,12 @@ $original='module.exports = {};'
 # is queued, and GitHub's branch URL can still serve the previous cached file.
 $installerUrl='https://raw.githubusercontent.com/sulistta/unblock-dc-downloads/'+$env:GITHUB_SHA+'/install.ps1'
 try {
-    New-Item -ItemType Directory -Path $core,$voice -Force | Out-Null
+    New-Item -ItemType Directory -Path $core,$voice,$data -Force | Out-Null
+    Add-Type -AssemblyName System.Security
+    $clear=[Text.Encoding]::UTF8.GetBytes('{"username":"FixtureUser","password":"FixturePassword"}')
+    $protected=[Security.Cryptography.ProtectedData]::Protect($clear,$null,[Security.Cryptography.DataProtectionScope]::CurrentUser)
+    [IO.File]::WriteAllBytes((Join-Path $data 'proton-credentials.dat'),$protected)
+    [Array]::Clear($clear,0,$clear.Length)
     [IO.File]::WriteAllText((Join-Path $core 'index.js'),$original)
     [IO.File]::WriteAllText((Join-Path $core 'core.asar'),'')
     [IO.File]::WriteAllText((Join-Path $voice 'index.js'),$original)

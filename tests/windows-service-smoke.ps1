@@ -1,4 +1,4 @@
-param([Parameter(Mandatory=$true)][string]$Helper, [string]$NetworkExecutable)
+param([Parameter(Mandatory=$true)][string]$Helper)
 # Run in an elevated PowerShell with Discord closed. A fake Discord tree and
 # a disposable service exercise the real installer. Always clean in finally.
 $ErrorActionPreference = 'Stop'
@@ -42,12 +42,20 @@ function Wait-Clean {
     throw 'A sessao anterior reteve processos ou credenciais.'
 }
 try {
+    # Public runners use disposable credentials and never authenticate to Proton.
+    $credentialDirectory = Join-Path $env:LOCALAPPDATA 'unblock-2'
+    New-Item -ItemType Directory -Force -Path $credentialDirectory | Out-Null
+    Add-Type -AssemblyName System.Security
+    $clear = [Text.Encoding]::UTF8.GetBytes('{"username":"FixtureUser","password":"FixturePassword"}')
+    $protected = [Security.Cryptography.ProtectedData]::Protect($clear,$null,[Security.Cryptography.DataProtectionScope]::CurrentUser)
+    [IO.File]::WriteAllBytes((Join-Path $credentialDirectory 'proton-credentials.dat'),$protected)
+    [Array]::Clear($clear,0,$clear.Length)
     Run-Helper 'install'
     Run-Helper 'install'
     $manifest = Get-Content "$env:LOCALAPPDATA\unblock-2\installation.json" -Raw | ConvertFrom-Json
     $runtime = Get-Content (Join-Path $manifest.runtime 'runtime.json') -Raw | ConvertFrom-Json
     $env:UNBLOCK_TEST_CHANNEL = "\\.\pipe\unblock-2-$sid"
-    $env:UNBLOCK_TEST_DATA = Join-Path $env:LOCALAPPDATA 'network-check'
+    $env:UNBLOCK_TEST_DATA = $runtime.dataDirectory
     if ($runtime.helperChannel -ne $env:UNBLOCK_TEST_CHANNEL) { throw 'Canal instalado incorreto.' }
     if ((Get-Service $name).Status -ne 'Running') { throw 'Servico nao iniciou.' }
     foreach ($privatePath in @("$env:ProgramFiles\unblock-2\$sid", "$env:ProgramData\unblock-2\$sid")) {
@@ -70,7 +78,7 @@ try {
     } finally { $pipe.Dispose() }
     Wait-Clean
     $pipe = Connect-Channel
-    $bytes = [Text.Encoding]::UTF8.GetBytes('{"ca":')
+    $bytes = [Text.Encoding]::UTF8.GetBytes('{"credentials":')
     $pipe.Write($bytes,0,$bytes.Length)
     $pipe.Dispose()
     Wait-Clean
@@ -84,11 +92,6 @@ try {
     Wait-Clean
     $broker = Get-CimInstance Win32_Service -Filter "Name='$name'"
     if (@(Get-NetTCPConnection -OwningProcess $broker.ProcessId -ErrorAction SilentlyContinue).Count -ne 0 -or @(Get-NetUDPEndpoint -OwningProcess $broker.ProcessId -ErrorAction SilentlyContinue).Count -ne 0) { throw 'O broker ocioso abriu uma porta de rede.' }
-    if ($NetworkExecutable) {
-        & $NetworkExecutable
-        if ($LASTEXITCODE -ne 0) { throw 'Falha na verificacao de rede.' }
-        Wait-Clean
-    }
     Run-Helper 'remove'
     if (Get-Service $name -ErrorAction SilentlyContinue) { throw 'O servico permaneceu instalado.' }
     if ((Get-Content (Join-Path $root 'index.js') -Raw) -ne 'module.exports = {};') { throw 'A remocao nao restaurou o modulo.' }
