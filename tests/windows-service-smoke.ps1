@@ -58,13 +58,21 @@ try {
     $env:UNBLOCK_TEST_DATA = $runtime.dataDirectory
     if ($runtime.helperChannel -ne $env:UNBLOCK_TEST_CHANNEL) { throw 'Canal instalado incorreto.' }
     if ((Get-Service $name).Status -ne 'Running') { throw 'Servico nao iniciou.' }
-    foreach ($privatePath in @("$env:ProgramFiles\unblock-2\$sid", "$env:ProgramData\unblock-2\$sid")) {
+    foreach ($privatePath in @("$env:ProgramFiles\unblock-2\$sid", "$env:ProgramFiles\unblock-2\$sid\runtime", "$env:ProgramData\unblock-2\$sid")) {
+        $userReadable = $privatePath -eq "$env:ProgramFiles\unblock-2\$sid"
         $acl = Get-Acl -LiteralPath $privatePath
         if (-not $acl.AreAccessRulesProtected) { throw 'ACL herdada no diretorio privado.' }
         if ($acl.GetOwner([Security.Principal.SecurityIdentifier]).Value -ne 'S-1-5-32-544') { throw 'Proprietario incorreto no diretorio privado.' }
         $rules = @($acl.GetAccessRules($true,$true,[Security.Principal.SecurityIdentifier]))
-        if ($rules.Count -ne 2) { throw 'Permissoes adicionais no diretorio privado.' }
+        $expectedRules = 2
+        if ($userReadable) { $expectedRules = 3 }
+        if ($rules.Count -ne $expectedRules) { throw 'Permissoes adicionais no diretorio privado.' }
         foreach ($rule in $rules) {
+            if ($userReadable -and $rule.IdentityReference.Value -eq $sid) {
+                $readExecute = [Security.AccessControl.FileSystemRights]::ReadAndExecute -bor [Security.AccessControl.FileSystemRights]::Synchronize
+                if ($rule.AccessControlType -ne 'Allow' -or [int]$rule.FileSystemRights -ne [int]$readExecute) { throw 'O usuario deve ter somente leitura e execucao do auxiliar.' }
+                continue
+            }
             if ($rule.IdentityReference.Value -notin @('S-1-5-18','S-1-5-32-544') -or $rule.AccessControlType -ne 'Allow' -or $rule.FileSystemRights -ne 'FullControl') { throw 'Permissao indevida no diretorio privado.' }
         }
     }

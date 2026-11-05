@@ -2,6 +2,8 @@
 
 Instaladores e executáveis oficiais para Windows x64 e Linux x86_64. O código da aplicação é mantido em um repositório privado.
 
+A versão 0.8.1 corrige o acesso às credenciais no Windows. Se a 0.8.0 continuar pedindo `configure` após você salvar os dados, feche completamente o Discord e execute novamente o instalador abaixo. A atualização preserva os dados já configurados.
+
 ## Linux
 
 Feche completamente o Discord e execute como seu usuário normal:
@@ -38,7 +40,7 @@ Requer Windows 10 versão 2004+ ou Windows 11 x64, PowerShell 5.1+ e Discord des
 & "$env:LOCALAPPDATA\unblock-2\bin\unblock-2.exe" remove
 ```
 
-Abra o Discord e use os controles nativos para assistir e transmitir. A conexão é automática; a voz comum continua direta. A primeira instalação abre [a página OpenVPN da conta Proton](https://account.proton.me/vpn/OpenVpn). Copie o usuário e a senha OpenVPN para os campos ocultos no terminal uma única vez; não use a senha da conta Proton. Não é necessário baixar configurações. Para atualizar, feche o Discord e execute novamente o comando do seu sistema.
+Abra o Discord e use os controles nativos para assistir e transmitir. A conexão é automática; a voz comum continua direta. Na primeira instalação e no comando `configure`, o terminal exibe o endereço da [página OpenVPN da conta Proton](https://account.proton.me/vpn/OpenVpn) para você acessar manualmente no navegador. Copie o usuário e a senha OpenVPN para os campos ocultos no terminal; não use a senha da conta Proton. Não é necessário baixar configurações. Para atualizar, feche o Discord e execute novamente o comando do seu sistema.
 
 A remoção desabilita a integração, retira o auxiliar e seus adaptadores. No Linux, a última conta removida também apaga o runtime protegido. O Windows gerencia o pacote do driver no Driver Store. O CLI no perfil do usuário permanece disponível para status, reparo ou uma nova instalação; as credenciais locais são removidas.
 
