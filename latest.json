@@ -1,12 +1,12 @@
 {
   "schema": 2,
-  "version": "0.8.1",
+  "version": "0.8.2",
   "windows_x64": {
-    "url": "https://github.com/sulistta/unblock-dc-downloads/releases/download/v0.8.1/unblock-2-windows-x64.zip",
-    "sha256": "e4e64f5e82f1b41b3cedb6ce88d0f1046ae5fc506d9b54d615647264a736ed54"
+    "url": "https://github.com/sulistta/unblock-dc-downloads/releases/download/v0.8.2/unblock-2-windows-x64.zip",
+    "sha256": "edcbf26ed6c7ac1ceaad36e29362cfdb3399c6936d8c1c7f73549673eb902ff2"
   },
   "linux_x86_64": {
-    "url": "https://github.com/sulistta/unblock-dc-downloads/releases/download/v0.8.1/unblock-2-linux-x86_64.tar.gz",
-    "sha256": "33b83844b5fdf337904fe251299c498bc94ee82baab4d6d64b01d02a6e348899"
+    "url": "https://github.com/sulistta/unblock-dc-downloads/releases/download/v0.8.2/unblock-2-linux-x86_64.tar.gz",
+    "sha256": "cd98bef6fa46659bcb6a29bce36988d89435dff2a9c3a4758026e69462881528"
   }
 }

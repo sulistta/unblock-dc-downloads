@@ -2,7 +2,7 @@
 
 Instaladores e executáveis oficiais para Windows x64 e Linux x86_64. O código da aplicação é mantido em um repositório privado.
 
-A versão 0.8.1 corrige o acesso às credenciais no Windows. Se a 0.8.0 continuar pedindo `configure` após você salvar os dados, feche completamente o Discord e execute novamente o instalador abaixo. A atualização preserva os dados já configurados.
+A versão 0.8.2 corrige a falha de conexão no Linux que fazia o teste pelo túnel expirar em rotas com limite menor de tamanho de pacote. Ela inclui a correção da 0.8.1 para o acesso às credenciais no Windows. Feche completamente o Discord e execute novamente o instalador abaixo para atualizar. A atualização preserva os dados já configurados.
 
 ## Linux
 
